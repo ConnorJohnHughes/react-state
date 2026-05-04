@@ -1,14 +1,15 @@
 import React, { useState } from "react"
 import IngredientsList from "./components/IngredientsList";
 import ClaudeRecipe from "./components/ClaudeRecipe";
+import { getRecipeFromMistral} from "./ai.js"
 
 
 export default function Body() {
 
     const [ingredients, setIngredients] = React.useState(
-        ["all the main spices", "pasta", "ground beef", "tomato paste"]
+        []
     )
-    const [recipeShown, setRecipeShown] = useState(false);
+    const [recipe, setRecipe] = useState("");
 
 
 
@@ -16,8 +17,13 @@ export default function Body() {
         const newIngredient = formData.get("ingredient")
         setIngredients(prevIngredients => [...prevIngredients, newIngredient])
     }
-    function toggleRecipeShown() {
-        setRecipeShown(prevShown => !prevShown)
+    async function getRecipe() {
+        try {
+            const markDownRecipe = await getRecipeFromMistral(ingredients)
+            setRecipe(markDownRecipe)
+        } catch (err) {
+            console.error("FRONTEND ERROR:", err)
+        }
     }
 
     
@@ -34,10 +40,10 @@ export default function Body() {
                 <button>Add ingredient</button>
             </form>
             {ingredients.length > 0 && 
-                <IngredientsList ingredients={ingredients} toggleRecipeShown={toggleRecipeShown} />
+                <IngredientsList ingredients={ingredients} getRecipe={getRecipe} />
             }
             
-            {recipeShown && <ClaudeRecipe  />}
+            {recipe && <ClaudeRecipe recipe={recipe} />}
 
         </main>
     )
